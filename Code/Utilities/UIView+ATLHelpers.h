@@ -1,9 +1,9 @@
 //
-//  Atlas.m
+//  UIView+ATLHelpers.h
 //  Atlas
 //
-//  Created by Kevin Coleman on 10/27/14.
-//  Copyright (c) 2015 Layer. All rights reserved.
+//  Created by Łukasz Przytuła on 09.11.2017.
+//  Copyright (c) 2017 Layer. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -18,6 +18,10 @@
 //  limitations under the License.
 //
 
-#import "Atlas.h"
+#import <UIKit/UIKit.h>
 
-NSString *const ATLVersionString = @"1.2.0";
+@interface UIView (ATLHelpers)
+
+@property (nonatomic, readonly) UIEdgeInsets atl_safeAreaInsets;
+
+@end

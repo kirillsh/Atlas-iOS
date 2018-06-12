@@ -31,6 +31,7 @@ extern NSString *const ATLMIMETypeTextPlain;          // text/plain
 extern NSString *const ATLMIMETypeImagePNG;           // image/png
 extern NSString *const ATLMIMETypeImageJPEG;          // image/jpeg
 extern NSString *const ATLMIMETypeImageJPEGPreview;   // image/jpeg+preview
+extern NSString *const ATLMIMETypeImageHEIC;          // image/heic
 extern NSString *const ATLMIMETypeImageGIF;           // image/gif
 extern NSString *const ATLMIMETypeImageGIFPreview;    // image/gif+preview
 extern NSString *const ATLMIMETypeImageSize;          // application/json+imageSize
@@ -54,7 +55,7 @@ extern NSString *const ATLUserNotificationDefaultActionsCategoryIdentifier;
 // @name Push Support
 //-------------------
 
-UIMutableUserNotificationCategory *ATLDefaultUserNotificationCategory();
+UIMutableUserNotificationCategory *ATLDefaultUserNotificationCategory(void);
 
 //---------------------------------
 // @name Internationalization Macro
@@ -66,9 +67,9 @@ UIMutableUserNotificationCategory *ATLDefaultUserNotificationCategory();
 // @name Max Cell Dimensions
 //--------------------------
 
-CGFloat ATLMaxCellWidth();
+CGFloat ATLMaxCellWidth(void);
 
-CGFloat ATLMaxCellHeight();
+CGFloat ATLMaxCellHeight(void);
 
 //----------------------
 // @name Image Utilities
@@ -103,13 +104,17 @@ LYRIdentity *__nullable ATLIdentityFromSet(NSString *userID, NSSet *participants
 // @name Message Utilities
 //------------------------
 
-LYRMessage *__nullable ATLMessageForParts(LYRClient *layerClient, NSArray <LYRMessagePart*> *messageParts, NSString *pushText, NSString *pushSound);
+LYRMessage *__nullable ATLMessageForParts(LYRClient *layerClient, NSSet <LYRMessagePart*> *messageParts, NSString *pushText, NSString *pushSound);
+
+LYRMessage *__nullable ATLMessageForPartsWithOptions(LYRClient *layerClient, NSArray *messageParts, LYRMessageOptions *messageOptions);
+
+LYRMessage *__nullable ATLMessageForPartsWithOptions(LYRClient *layerClient, NSArray *messageParts, LYRMessageOptions *messageOptions);
 
 //-----------------------------
 // @name Message Part Utilities
 //-----------------------------
 
-NSArray <LYRMessagePart*> *ATLMessagePartsWithMediaAttachment(ATLMediaAttachment *mediaAttachment);
+NSSet <LYRMessagePart*> *ATLMessagePartsWithMediaAttachment(ATLMediaAttachment *mediaAttachment);
 
 LYRMessagePart *__nullable ATLMessagePartForMIMEType(LYRMessage *message, NSString *MIMEType);
 

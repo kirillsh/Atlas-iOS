@@ -20,6 +20,8 @@
 
 #import "ATLBaseConversationViewController.h"
 #import "ATLConversationView.h"
+#import "UIView+ATLHelpers.h"
+#import "UICollectionView+ATLHelpers.h"
 
 static inline BOOL atl_systemVersionLessThan(NSString * _Nonnull systemVersion) {
     return [[[UIDevice currentDevice] systemVersion] compare:systemVersion options:NSNumericSearch] == NSOrderedAscending;
@@ -65,6 +67,18 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
     _displaysAddressBar = NO;
     _typingParticipantIDs = [NSMutableArray new];
     _firstAppearance = YES;
+}
+
+- (void)setDisplaysAddressBar:(BOOL)displaysAddressBar {
+    _displaysAddressBar = displaysAddressBar;
+    if ([self isViewLoaded] && !displaysAddressBar && self.addressBarController.parentViewController != nil) {
+        // remove added address bar
+        [self.addressBarController willMoveToParentViewController:nil];
+        [self.addressBarController.view removeFromSuperview];
+        [self.addressBarController removeFromParentViewController];
+        self.addressBarController = nil;
+        [self updateTopCollectionViewInset];
+    }
 }
 
 - (void)loadView
@@ -201,7 +215,9 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
 - (void)scrollToBottomAnimated:(BOOL)animated
 {
     CGSize contentSize = self.collectionView.contentSize;
-    [self.collectionView setContentOffset:[self bottomOffsetForContentSize:contentSize] animated:animated];
+    CGPoint contentOffset = [self bottomOffsetForContentSize:contentSize];
+    contentOffset.x = self.collectionView.contentOffset.x;
+    [self.collectionView setContentOffset:contentOffset animated:animated];
 }
 
 #pragma mark - Content Inset Management  
@@ -214,7 +230,7 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
     UIEdgeInsets scrollIndicatorInsets = self.collectionView.scrollIndicatorInsets;
     CGRect frame = [self.view convertRect:self.addressBarController.addressBarView.frame fromView:self.addressBarController.addressBarView.superview];
     
-    contentInset.top = CGRectGetMaxY(frame);
+    contentInset.top = MAX(CGRectGetMaxY(frame), 0);
     scrollIndicatorInsets.top = contentInset.top;
     self.collectionView.contentInset = contentInset;
     self.collectionView.scrollIndicatorInsets = scrollIndicatorInsets;
@@ -225,7 +241,7 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
     [self.messageInputToolbar layoutIfNeeded];
     
     UIEdgeInsets insets = self.collectionView.contentInset;
-    CGFloat keyboardHeight = MAX(self.keyboardHeight, CGRectGetHeight(self.messageInputToolbar.frame));
+    CGFloat keyboardHeight = MAX(self.keyboardHeight, CGRectGetHeight(self.messageInputToolbar.frame)) - self.view.atl_safeAreaInsets.bottom;
     
     insets.bottom = keyboardHeight + self.typingIndicatorInset;
     self.collectionView.scrollIndicatorInsets = insets;
@@ -317,7 +333,7 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
 {
     CGFloat contentSizeHeight = contentSize.height;
     CGFloat collectionViewFrameHeight = self.collectionView.frame.size.height;
-    CGFloat collectionViewBottomInset = self.collectionView.contentInset.bottom;
+    CGFloat collectionViewBottomInset = self.collectionView.atl_adjustedContentInset.bottom;
     CGFloat collectionViewTopInset = self.collectionView.contentInset.top;
     CGPoint offset = CGPointMake(0, MAX(-collectionViewTopInset, contentSizeHeight - (collectionViewFrameHeight - collectionViewBottomInset)));
     return offset;

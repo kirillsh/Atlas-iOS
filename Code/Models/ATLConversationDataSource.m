@@ -44,6 +44,7 @@ LYRConversation *LYRConversationDataSourceConversationFromPredicate(LYRPredicate
 
 @interface ATLConversationDataSource ()
 
+@property (atomic, copy) NSOrderedSet<LYRMessage *> *messages;
 @property (nonatomic, readwrite) LYRQueryController *queryController;
 @property (nonatomic, readwrite) BOOL expandingPaginationWindow;
 @property (nonatomic, readwrite) LYRConversation *conversation;
@@ -114,7 +115,9 @@ NSInteger const ATLQueryControllerPaginationWindow = 30;
 
 - (void)finishExpandingPaginationWindow
 {
-    NSUInteger numberOfMessagesToDisplay = MIN(-self.queryController.paginationWindow + ATLQueryControllerPaginationWindow, self.queryController.totalNumberOfObjects);
+    NSUInteger numberOfMessagesAvailable = MIN(-self.queryController.paginationWindow + ATLQueryControllerPaginationWindow, self.queryController.totalNumberOfObjects);
+    NSUInteger numberOfMessagesToDisplay = MAX(1, numberOfMessagesAvailable);
+    
     self.queryController.paginationWindow = -numberOfMessagesToDisplay;
     self.expandingPaginationWindow = NO;
 }
@@ -199,15 +202,37 @@ NSInteger const ATLQueryControllerPaginationWindow = 30;
 - (LYRMessage *)messageAtCollectionViewIndexPath:(NSIndexPath *)collectionViewIndexPath
 {
     NSIndexPath *queryControllerIndexPath = [self queryControllerIndexPathForCollectionViewIndexPath:collectionViewIndexPath];
-    LYRMessage *message = [self.queryController objectAtIndexPath:queryControllerIndexPath];
+    if (queryControllerIndexPath.row >= self.messages.count) {
+        return nil;
+    }
+    LYRMessage *message = [self.messages objectAtIndex:queryControllerIndexPath.row];
     return message;
 }
 
 - (LYRMessage *)messageAtCollectionViewSection:(NSInteger)collectionViewSection
 {
     NSIndexPath *queryControllerIndexPath = [self queryControllerIndexPathForCollectionViewSection:collectionViewSection];
-    LYRMessage *message = [self.queryController objectAtIndexPath:queryControllerIndexPath];
+    if (queryControllerIndexPath.row >= self.messages.count) {
+        return nil;
+    }
+    LYRMessage *message = [self.messages objectAtIndex:queryControllerIndexPath.row];
     return message;
+}
+
+- (NSIndexPath *)collectionViewIndexPathForMessage:(LYRMessage *)message {
+    NSUInteger messageIndex = [self.messages indexOfObject:message];
+    if (messageIndex == NSNotFound) {
+        return nil;
+    }
+    return [self collectionViewIndexPathForQueryControllerRow:messageIndex];
+}
+
+- (NSUInteger)numberOfMessages {
+    return self.messages.count;
+}
+
+- (void)updateMessages {
+    self.messages = self.queryController.paginatedObjects;
 }
 
 @end
